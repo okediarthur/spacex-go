@@ -1,0 +1,41 @@
+
+name: Flutter SCA and SAST
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  sca_and_sast:
+    runs-on: ubuntu-latest #OS
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.19.0
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      # SCA: Install OSV-Scanner
+      - name: Install OSV-Scanner
+        run: |
+          curl -LO https://github.com/google/osv-scanner/releases/download/v1.0.0/osv-scanner-linux-amd64
+          chmod +x osv-scanner-linux-amd64
+          sudo mv osv-scanner-linux-amd64 /usr/local/bin/osv-scanner
+
+      # Run SCA (OSV-Scanner)
+      - name: Run OSV-Scanner for SCA
+        run: osv-scanner --lockfile=pubspec.lock
+
+      # SAST: Run Dart Code Metrics
+      - name: Run Dart Code Metrics
+        run: flutter pub run dart_code_metrics:metrics analyze lib/ --fatal-warnings
