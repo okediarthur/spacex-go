@@ -14,16 +14,16 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v2
 
       - name: Set up Flutter
-        uses: subosito/flutter-action@v2
+        uses: subosito/flutter-action@v1
         with:
           channel: stable
-          flutter-version: 3.19.0
+        #   flutter-version: 3.19.0
 
       - name: Install dependencies
-        run: flutter pub get
+        run: flutter packages get
 
       # SCA: Install OSV-Scanner
       - name: Install OSV-Scanner
