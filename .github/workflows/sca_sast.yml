@@ -1,41 +1,58 @@
-
-name: Flutter SCA and SAST
+name: Flutter Web with SCA and SAST
 
 on:
-  workflow_dispatch:
   push:
-    branches: [main]
+    branches:
+      - master
   pull_request:
-    branches: [main]
+    branches:
+      - master
 
 jobs:
-  sca_and_sast:
-    runs-on: ubuntu-latest #OS
+  build_and_security:
+    runs-on: ubuntu-latest
 
     steps:
+      # Step 1: Checkout the repository code
       - name: Checkout code
         uses: actions/checkout@v2
 
+      # Step 2: Set up Flutter environment
       - name: Set up Flutter
         uses: subosito/flutter-action@v1
         with:
           channel: stable
-        #   flutter-version: 3.19.0
 
+      # Step 3: Install dependencies (Flutter packages)
       - name: Install dependencies
-        run: flutter packages get
+        run: flutter pub get
 
-      # SCA: Install OSV-Scanner
+      # Step 4: Build the Flutter web app
+      - name: Build web
+        run: flutter build web --release
+
+      # Step 5: Deploy the web app to GitHub Pages (or another hosting service)
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./build/web
+
+      # Step 6: Install OSV-Scanner for Software Composition Analysis (SCA)
       - name: Install OSV-Scanner
         run: |
           curl -LO https://github.com/google/osv-scanner/releases/download/v1.0.0/osv-scanner-linux-amd64
           chmod +x osv-scanner-linux-amd64
           sudo mv osv-scanner-linux-amd64 /usr/local/bin/osv-scanner
 
-      # Run SCA (OSV-Scanner)
+      # Step 7: Run OSV-Scanner to perform SCA on dependencies
       - name: Run OSV-Scanner for SCA
         run: osv-scanner --lockfile=pubspec.lock
 
-      # SAST: Run Dart Code Metrics
+      # Step 8: Install Dart Code Metrics for SAST
+      - name: Install Dart Code Metrics
+        run: flutter pub add dart_code_metrics
+
+      # Step 9: Run Dart Code Metrics for SAST (Static Application Security Testing)
       - name: Run Dart Code Metrics
         run: flutter pub run dart_code_metrics:metrics analyze lib/ --fatal-warnings
