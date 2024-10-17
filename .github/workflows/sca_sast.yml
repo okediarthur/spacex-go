@@ -1,6 +1,7 @@
 name: Flutter Web with SCA and SAST
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - master
