@@ -60,7 +60,7 @@ jobs:
       # Step 9: Install OSV-Scanner for Software Composition Analysis (SCA)
       - name: Install OSV-Scanner
         run: |
-          curl -LO https://github.com/google/osv-scanner/releases/latest/download/osv-scanner-linux-amd64
+          curl -LO https://github.com/google/osv-scanner/releases/download/v1.9.0/osv-scanner_linux_amd64
           chmod +x osv-scanner-linux-amd64
           sudo mv osv-scanner-linux-amd64 /usr/local/bin/osv-scanner
 
