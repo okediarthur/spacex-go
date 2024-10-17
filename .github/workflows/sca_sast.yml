@@ -23,36 +23,53 @@ jobs:
         with:
           channel: stable
 
-      # Step 3: Install dependencies (Flutter packages)
+      # Step 3: Cache Flutter dependencies
+      - name: Cache Flutter dependencies
+        uses: actions/cache@v2
+        with:
+          path: ~/.pub-cache
+          key: ${{ runner.os }}-pub-${{ hashFiles('pubspec.yaml')}}
+          restore-keys: |
+            ${{ runner.os }}-pub-
+
+      # Step 4: Install dependencies (Flutter packages)
       - name: Install dependencies
         run: flutter pub get
 
-      # Step 4: Build the Flutter web app
+      # Step 5: Run tests
+      - name: Run tests
+        run: flutter test
+
+      # Step 6: Lint Code
+      - name: Run Linter
+        run: flutter analyze
+
+      # Step 7: Build the Flutter web app
       - name: Build web
         run: flutter build web --release
 
-      # Step 5: Deploy the web app to GitHub Pages (or another hosting service)
+      # Step 8: Deploy the web app to GitHub Pages (or another hosting service)
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./build/web
 
-      # Step 6: Install OSV-Scanner for Software Composition Analysis (SCA)
+      # Step 9: Install OSV-Scanner for Software Composition Analysis (SCA)
       - name: Install OSV-Scanner
         run: |
-          curl -LO https://github.com/google/osv-scanner/releases/download/v1.0.0/osv-scanner-linux-amd64
+          curl -LO https://github.com/google/osv-scanner/releases/latest/download/osv-scanner-linux-amd64
           chmod +x osv-scanner-linux-amd64
           sudo mv osv-scanner-linux-amd64 /usr/local/bin/osv-scanner
 
-      # Step 7: Run OSV-Scanner to perform SCA on dependencies
+      # Step 10: Run OSV-Scanner to perform SCA on dependencies
       - name: Run OSV-Scanner for SCA
         run: osv-scanner --lockfile=pubspec.lock
 
-      # Step 8: Install Dart Code Metrics for SAST
+      # Step 11: Install Dart Code Metrics for SAST
       - name: Install Dart Code Metrics
-        run: flutter pub add dart_code_metrics
+        run: flutter pub get
 
-      # Step 9: Run Dart Code Metrics for SAST (Static Application Security Testing)
+      # Step 12: Run Dart Code Metrics for SAST (Static Application Security Testing)
       - name: Run Dart Code Metrics
         run: flutter pub run dart_code_metrics:metrics analyze lib/ --fatal-warnings
